@@ -1,29 +1,26 @@
-/**
- * Root page — redirects authenticated users to the dashboard,
- * unauthenticated users to the login page.
- *
- * This is a client component so it can read localStorage.
- */
 'use client'
 
-import { useEffect } from 'react'
-import { getToken } from '../lib/api'
+import React from 'react'
+import Link from 'next/link'
 
 export default function RootPage() {
-  useEffect(() => {
-    const token = getToken()
-    // Small delay to avoid flash before redirect
-    const dest = token ? '/dashboard' : '/login'
-    window.location.replace(dest)
-  }, [])
-
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#fafaf7]">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center font-bold text-gray-900 text-lg">
-          OC
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-6 text-center">
+      <div className="max-w-md space-y-6">
+        <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+          Welcome to Harkly
+        </h1>
+        <p className="text-lg text-gray-600">
+          Your AI receptionist platform. The frontend has loaded successfully!
+        </p>
+        <div className="flex justify-center gap-4">
+          <Link 
+            href="/login" 
+            className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 transition"
+          >
+            Go to Portal Login
+          </Link>
         </div>
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900" aria-label="Loading…" />
       </div>
     </div>
   )
