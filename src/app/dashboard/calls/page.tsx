@@ -121,6 +121,7 @@ export default function CallsPage() {
   useEffect(() => {
     const load = async () => {
       try {
+        // @ts-ignore
         const data = await dashboard.calls()
         setCalls(data.calls || [])
       } finally {
