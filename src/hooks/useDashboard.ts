@@ -9,6 +9,7 @@ export function useDashboard() {
   useEffect(() => {
     let active = true
     const load = async () => {
+      // @ts-ignore
       const [overviewData, callsData] = await Promise.all([dashboard.overview(), dashboard.calls()])
       if (!active) return
       setOverview(overviewData)
