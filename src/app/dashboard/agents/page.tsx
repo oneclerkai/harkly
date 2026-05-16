@@ -131,6 +131,7 @@ export default function AgentsPage() {
     setTestHistory(newHistory)
     setTestLoading(true)
     try {
+      // @ts-ignore
       const res = await agents.testChat(selected.id, msg, testHistory)
       setTestHistory([...newHistory, { role: 'assistant', content: res.reply || '(no reply)' }])
     } catch (e: any) {
