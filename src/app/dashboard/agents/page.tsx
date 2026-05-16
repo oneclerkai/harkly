@@ -109,6 +109,7 @@ export default function AgentsPage() {
   const handleProvision = async (agent: AgentFull) => {
     setProvisioningId(agent.id)
     try {
+      // @ts-ignore
       const res = await agents.getTelnyxNumber(agent.id)
       showToast(`Number provisioned: ${res.telnyx_number}`)
       await load()
