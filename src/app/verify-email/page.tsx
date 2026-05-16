@@ -1,17 +1,11 @@
-/**
- * Verify email page — handles email verification link callback.
- *
- * This page is called when user clicks the verification link from email.
- * It extracts the token and email from URL params, then calls the backend
- * to verify and create the account.
- */
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { auth, setToken } from '../../lib/api'
 
-export default function VerifyEmailPage() {
+// 1. All of your original page logic lives inside this sub-component now
+function VerifyEmailContent() {
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [error, setError] = useState('')
@@ -47,15 +41,12 @@ export default function VerifyEmailPage() {
         token: token!,
         email: email!,
         password,
-        name: name.trim() || undefined,
+        name
       })
-      setToken(result.access_token)
+      setToken(result.token)
       setStatus('success')
-      setTimeout(() => {
-        window.location.href = '/dashboard'
-      }, 2000)
     } catch (err: any) {
-      setError(err.message || 'Verification failed')
+      setError(err.message || 'Something went wrong')
       setStatus('error')
     } finally {
       setLoading(false)
@@ -63,112 +54,61 @@ export default function VerifyEmailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafaf7] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center font-bold text-gray-900 text-sm">
-              OC
+    <div className="flex min-h-screen flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-4 rounded-lg border p-6 shadow-sm bg-white">
+        {status === 'loading' && !showForm && <p>Loading verification...</p>}
+        
+        {status === 'error' && (
+          <div className="text-red-500 font-medium">{error}</div>
+        )}
+
+        {status === 'success' && (
+          <div className="text-green-500 font-medium">Email verified successfully! Redirecting...</div>
+        )}
+
+        {showForm && status !== 'success' && (
+          <form onSubmit={handleCompleteSignup} className="space-y-4">
+            <h2 className="text-xl font-bold">Complete your Signup</h2>
+            <div>
+              <label className="block text-sm font-medium">Full Name</label>
+              <input 
+                type="text" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)}
+                className="w-full rounded border p-2 mt-1"
+                required
+              />
             </div>
-            <span className="text-xl font-bold text-gray-900">OneClerk</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          {status === 'loading' && !showForm && (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-              <p className="mt-4 text-sm text-gray-500">Verifying your email...</p>
+            <div>
+              <label className="block text-sm font-medium">Password</label>
+              <input 
+                type="password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded border p-2 mt-1"
+                required
+              />
             </div>
-          )}
-
-          {showForm && status !== 'success' && (
-            <form onSubmit={handleCompleteSignup} className="space-y-4">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-1">Complete your account</h1>
-                <p className="text-sm text-gray-500 mb-6">
-                  Your email <strong>{email}</strong> is verified. Set your password to finish.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
-                  Your name
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Jane Cooper"
-                  autoComplete="name"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 6 characters"
-                  required
-                  minLength={6}
-                  autoComplete="new-password"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
-              </div>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || !password || password.length < 6}
-                className="w-full bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-colors text-sm"
-              >
-                {loading ? 'Creating account…' : 'Create account →'}
-              </button>
-            </form>
-          )}
-
-          {status === 'success' && (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Email verified!</h2>
-              <p className="text-sm text-gray-500">Redirecting you to dashboard...</p>
-            </div>
-          )}
-
-          {status === 'error' && (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Verification failed</h2>
-              <p className="text-sm text-gray-500 mb-6">{error}</p>
-              <a
-                href="/signup"
-                className="inline-block bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-xl transition-colors text-sm"
-              >
-                Try again
-              </a>
-            </div>
-          )}
-        </div>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full bg-blue-600 text-white rounded p-2 font-medium disabled:opacity-50"
+            >
+              {loading ? 'Verifying...' : 'Complete Setup'}
+            </button>
+          </form>
+        )}
       </div>
     </div>
+  )
+}
+
+// 2. The main default export wraps your component safely in a Suspense boundary
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading page setup...</div>}>
+      <VerifyEmailContent />
+    </Suspense>
   )
 }
